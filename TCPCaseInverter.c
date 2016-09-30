@@ -11,11 +11,33 @@ static const int MAXPENDING = 5; // Maximum outstanding connection requests
 
 int main(int argc, char *argv[]) {
 
-  if (argc != 2) // Test for correct number of arguments
+  if (argc != 3) // Test for correct number of arguments
     DieWithUserMessage("Parameter(s)", "<Server Port>");
 
-  in_port_t servPort = atoi(argv[1]); // First arg:  local port
+  // Parse command line and initialize variables
+	char *portnum;
+	int c;
+	//opterr = 0;
+	while ((c = getopt(argc, argv, "p:")) != -1) {
+		switch (c) {
+			case 'p':
+				portnum = optarg;
+				break;
+			case '?':
+				if (optopt == 'c')
+					fprintf (stderr, "Option -%c needs an argument.\n", optopt);
+				else if (isprint (optopt))
+					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+				else
+					fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+				return 1;
+			default:
+				abort ();
+		}
+	}
 
+  //in_port_t servPort = atoi(argv[1]); // First arg:  local port
+  in_port_t servPort = atoi(portnum);
   // Create socket for incoming connections
   int servSock; // Socket descriptor for server
   if ((servSock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)

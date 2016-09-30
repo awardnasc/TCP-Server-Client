@@ -1,9 +1,20 @@
 #ifndef PRACTICAL_H_
 #define PRACTICAL_H_
 
-#include <stdbool.h>
+
 #include <stdio.h>
+#include <string.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
+#include <stdbool.h>
+#include <ctype.h>
+#include <time.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <netinet/in.h>
 
 // Handle error with user msg
 void DieWithUserMessage(const char *msg, const char *detail);
