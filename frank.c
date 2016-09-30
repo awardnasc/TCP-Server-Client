@@ -92,9 +92,9 @@ int main(int argc, char *argv[]) {
 
   struct sockaddr_storage fromAddr; // Source address of server
 	socklen_t fromAddrLen = sizeof(fromAddr);
-	char received[MAXSTRINGLENGTH + 1];
+	char inverted[MAXSTRINGLENGTH + 1];
 	while (!recv_success) {
-		numBytes = recv(sock, received, BUFSIZE - 1, 0);
+		numBytes = recv(sock, inverted, BUFSIZE - 1, 0);
 	        attempts++;
 
 		if (numBytes == echoStringLen) {
@@ -105,15 +105,61 @@ int main(int argc, char *argv[]) {
 			printf("recvfrom() error: received unexpected number of bytes; ");
 			printf("attempting to receive again...\n");
 		}
+		//else if (!SockAddrsEqual(servAddr->ai_addr, (struct sockaddr *)&fromAddr))
+		//	printf("recvfrom() error: received a packet from unknown source");
 		else
 			printf("recvfrom() failed; attempting to receive again...\n");
   }
-  
 
-  received[echoStringLen] = '\0';
+
+
+  // Send inverted string back to caseInverter
+	size_t invertedLen = strlen(inverted);
+	send_success = false;
+	while (!send_success) {
+		attempts++;
+		numBytes = send(sock, inverted, invertedLen, 0);
+		//numBytes = sendto(sock, inverted, invertedLen, 0,
+		//				servAddr->ai_addr, servAddr->ai_addrlen);
+		if (numBytes == invertedLen)
+			send_success = true;
+		else if (numBytes != invertedLen) {
+			printf("sendto() error: sent unexpected number of bytes; ");
+			printf("sending message again...\n");
+		}
+		else
+			printf("sendto() failed; sending message again...\n");
+	}
+
+   // Receive final re-inverted string back from caseInverter
+	char final[MAXSTRINGLENGTH + 1];
+	recv_success = false;
+	while (!recv_success) {
+                numBytes = recv(sock, final, BUFSIZE - 1, 0);
+		if (numBytes == invertedLen) 
+			recv_success = true;
+		else if (numBytes != invertedLen) {
+			printf("recvfrom() error: received unexpected number of bytes; ");
+			printf("attempting to receive again...\n");
+		}
+		else
+			printf("recvfrom() failed; attempting to receive again...\n");
+	}
+
+  // Verify that initial msg and final doubly-inverted msg are identical
+  inverted[echoStringLen] = '\0';
+  final[echoStringLen] = '\0';
+  
+  _Bool verified = !strcmp(echoString, final);
+
+
+
   end = clock();
   double time_spent = ((double)(end - begin)) / CLOCKS_PER_SEC;
-  printf(" %d     %.6f     %s     %s", attempts, time_spent, echoString, received);
+  printf(" %d	%.6f	%s	%s	%s", attempts, 
+			time_spent, echoString, inverted,
+			 verified ? "Verified" : "Not Verified");
+
   fputc('\n', stdout); // Print a final linefeed
 
   close(sock);

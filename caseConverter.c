@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
   ssize_t numBytesRcvd = recv(clntSock, buffer, BUFSIZE, 0);
   if (numBytesRcvd < 0)
     DieWithSystemMessage("recv() failed");
-  printf("buffer: %s", buffer);
+  
   //Invert message case 
   int x;
   for (x=0; x<clntAddrLen; x++) {
