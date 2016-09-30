@@ -77,7 +77,38 @@ int main(int argc, char *argv[]) {
     else
       puts("Unable to get client address");
 
-    HandleTCPClient(clntSock);
+    
+    char buffer[BUFSIZE]; // Buffer for echo string
+    char inverted[BUFSIZE];
+  // Receive message from client
+  ssize_t numBytesRcvd = recv(clntSock, buffer, BUFSIZE, 0);
+  if (numBytesRcvd < 0)
+    DieWithSystemMessage("recv() failed");
+  
+  //Invert message case 
+  int x;
+  for (x=0; x<clntAddrLen; x++) {
+  if ((int)buffer[x] >= 65 && (int)buffer[x] <= 90)
+	inverted[x] = buffer[x]+32;
+	else if ((int)buffer[x] >= 97 && (int)buffer[x] <= 122)
+	inverted[x] = buffer[x]-32;
+	else
+	inverted[x] = buffer[x];
+		}
+  // Send received string and receive again until end of stream
+  while (numBytesRcvd > 0) { // 0 indicates end of stream
+    // Echo message back to client
+    ssize_t numBytesSent = send(clntSock, inverted, numBytesRcvd, 0);
+    if (numBytesSent < 0)
+      DieWithSystemMessage("send() failed");
+    else if (numBytesSent != numBytesRcvd)
+      DieWithUserMessage("send()", "sent unexpected number of bytes");
+
+    // See if there is more data to receive
+    numBytesRcvd = recv(clntSock, buffer, BUFSIZE, 0);
+    if (numBytesRcvd < 0)
+      DieWithSystemMessage("recv() failed");
+  }
   }
   // NOT REACHED
 }
