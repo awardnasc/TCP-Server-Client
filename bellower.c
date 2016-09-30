@@ -10,16 +10,42 @@
 
 int main(int argc, char *argv[]) {
 
-  if (argc < 3 || argc > 4) // Test for correct number of arguments
+  /*if (argc < 3 || argc > 4) // Test for correct number of arguments
     DieWithUserMessage("Parameter(s)",
         "<Server Address> <Echo Word> [<Server Port>]");
-
-  char *servIP = argv[1];     // First arg: server IP address (dotted quad)
-  char *echoString = argv[2]; // Second arg: string to echo
+*/
+  char *servIP;     // First arg: server IP address (dotted quad)
+  char *echoString; // Second arg: string to echo
 
   // Third arg (optional): server port (numeric).  7 is well-known echo port
-  in_port_t servPort = (argc == 4) ? atoi(argv[3]) : 7;
+  in_port_t servPort;
 
+  // Parse command line arguments and initialize variables
+        int c;
+	opterr = 0;
+	while ((c = getopt(argc, argv, "s:p:m:")) != -1) {
+		switch (c) {
+			case 's':
+				servIP = optarg;
+				break;
+			case 'p':
+				servPort = atoi(optarg);
+				break;
+			case 'm':
+				echoString = optarg;
+				break;
+			case '?':
+				if (optopt == 'c')
+					fprintf (stderr, "Option -%c needs an argument.\n", optopt);
+				else if (isprint (optopt))
+					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+				else
+					fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+				return 1;
+			default:
+				abort ();
+		}
+	}
   // Create a reliable, stream socket using TCP
   int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (sock < 0)
