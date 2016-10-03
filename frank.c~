@@ -127,35 +127,27 @@ int main(int argc, char *argv[]) {
 	printf("inverted message sent back: %s\n", inverted);	
 
 	while (!send_success) {
-		close(sock);
-		freeaddrinfo(servAddr);		
-		// Get address
-		struct addrinfo *servAddr;
-		int rtnVal = getaddrinfo(servIP, servPort, &addrCriteria, &servAddr);
-		if (rtnVal != 0) {
-			printf("getaddrinfo() failed: %s\n", gai_strerror(rtnVal));
-			exit(1);
-		}
-		
-		// Create a reliable stream socket using TCP
-		int sock = socket(servAddr->ai_family, servAddr->ai_socktype,
-								servAddr->ai_protocol);
-		if (sock < 0) {
-			perror("socket() failed");
-			exit(1);
-		}
+	close(sock);
+	freeaddrinfo(servAddr);		
+	// Create a reliable stream socket using TCP
+	int sock = socket(servAddr->ai_family, servAddr->ai_socktype,
+							servAddr->ai_protocol);
+	if (sock < 0) {
+		perror("socket() failed");
+		exit(1);
+	}
 
-		// Establish the connection to the server
-		if (connect(sock, servAddr->ai_addr, servAddr->ai_addrlen) < 0) {
-			perror("connect() failed");
-			exit(1);
-		}
+	// Establish the connection to the server
+	if (connect(sock, servAddr->ai_addr, servAddr->ai_addrlen) < 0) {
+		perror("connect() failed");
+		exit(1);
+	}
 		
-			attempts++;
+		attempts++;
 
-		// Send the string to the server
-		size_t messageLen = strlen(message);
-		ssize_t numBytes = send(sock, inverted, invertedLen, 0);
+// Send the string to the server
+	size_t messageLen = strlen(message);
+	ssize_t numBytes = send(sock, inverted, invertedLen, 0);
 		//numBytes = send(sock, inverted, invertedLen, 0);
 		if (numBytes == invertedLen)
 			send_success = true;

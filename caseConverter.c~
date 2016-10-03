@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
   if (numBytesRcvd < 0)
     DieWithSystemMessage("recv() failed");
 
-
+ printf("buffer right after recv: %s\n", buffer); 
   //Invert message case 
   int x;
   for (x=0; x<clntAddrLen; x++) {
@@ -154,7 +154,9 @@ int main(int argc, char *argv[]) {
 	else
 	inverted[x] = buffer[x];
 		}
+ printf("buffer right after recv: %s\n", buffer); 
  
+ printf("buffer right after recv: %s\n", buffer); 
   // Send received string and receive again until end of stream
   while (numBytesRcvd > 0) { // 0 indicates end of stream
     // Echo message back to client
