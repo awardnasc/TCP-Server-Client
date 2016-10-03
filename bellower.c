@@ -10,18 +10,19 @@
 
 int main(int argc, char *argv[]) {
 
-  /*if (argc < 3 || argc > 4) // Test for correct number of arguments
-    DieWithUserMessage("Parameter(s)",
-        "<Server Address> <Echo Word> [<Server Port>]");
-*/
-  char *servIP;     // First arg: server IP address (dotted quad)
-  char *echoString; // Second arg: string to echo
+	// Ensure that user ran with correct syntax and # of arguments. If not, exit
+	if (argc != 7) {
+		printf("Syntax: ./bellower -s <server address> -p <port> -m <message>\n");
+		exit(1);
+	}
 
-  // Third arg (optional): server port (numeric).  7 is well-known echo port
-  in_port_t servPort;
+	// Declare variables
+	char *servIP;     // server IP address
+	char *servPort;	// server port number
+	char *message;		// message to send to server
 
-  // Parse command line arguments and initialize variables
-        int c;
+	// Parse command line arguments with flags and initialize variables
+	int c;
 	opterr = 0;
 	while ((c = getopt(argc, argv, "s:p:m:")) != -1) {
 		switch (c) {
@@ -29,10 +30,10 @@ int main(int argc, char *argv[]) {
 				servIP = optarg;
 				break;
 			case 'p':
-				servPort = atoi(optarg);
+				servPort = optarg;
 				break;
 			case 'm':
-				echoString = optarg;
+				message = optarg;
 				break;
 			case '?':
 				if (optopt == 'c')
@@ -47,76 +48,83 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-  // Create a reliable, stream socket using TCP
-  int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if (sock < 0)
-    DieWithSystemMessage("socket() failed");
+	// Tell the system what kind of address info we want
+	struct addrinfo addrCriteria;
+	memset(&addrCriteria, 0, sizeof(addrCriteria));
+	addrCriteria.ai_family = AF_UNSPEC;
+	addrCriteria.ai_socktype = SOCK_STREAM;
+	addrCriteria.ai_protocol = IPPROTO_TCP;
 
-  // Construct the server address structure
-  struct sockaddr_in servAddr;            // Server address
-  memset(&servAddr, 0, sizeof(servAddr)); // Zero out structure
-  servAddr.sin_family = AF_INET;          // IPv4 address family
-  
+	// Get address
+	struct addrinfo *servAddr;
+	int rtnVal = getaddrinfo(servIP, servPort, &addrCriteria, &servAddr);
+	if (rtnVal != 0) {
+		printf("getaddrinfo() failed: %s\n", gai_strerror(rtnVal));
+		exit(1);
+	}
 
-  // Convert address
-  int rtnVal = inet_pton(AF_INET, servIP, &servAddr.sin_addr.s_addr);
-  if (rtnVal == 0)
-    DieWithUserMessage("inet_pton() failed", "invalid address string");
-  else if (rtnVal < 0)
-    DieWithSystemMessage("inet_pton() failed");
-  servAddr.sin_port = htons(servPort);    // Server port
+	// Create a reliable stream socket using TCP
+	int sock = socket(servAddr->ai_family,servAddr->ai_socktype,
+							servAddr->ai_protocol);
+	if (sock < 0) {
+		perror("socket() failed");
+		exit(1);
+	}
 
-  // Establish the connection to the echo server
-  if (connect(sock, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
-    DieWithSystemMessage("connect() failed");
+	// Establish the connection to the server
+	if (connect(sock, servAddr->ai_addr, servAddr->ai_addrlen) < 0) {
+		perror("connect() failed");
+		exit(1);
+	}
 
-  size_t echoStringLen = strlen(echoString); // Determine input length
+	// Declare new variables for sending/receiving and clock time
+	_Bool send_success = false, recv_success = false;
+	int attempts = 0;
+	clock_t begin,end;
+	begin = clock();
 
+	// Send the string to the server
+	size_t messageLen = strlen(message);
+	ssize_t numBytes = send(sock, message, messageLen, 0);
+	if (numBytes < 0) {
+		perror("send() failed");
+		exit(1);
+	}
+	else if (numBytes != messageLen) {
+		printf("send(): sent unexpected number of bytes\n");
+		exit(1);
+	}
 
-  // Declare new variables for sending/receiving and clock time
-  _Bool send_success = false, recv_success = false;
-  int attempts = 0;
-  clock_t begin,end;
-  begin = clock();
-
-  // Send the string to the server
-  ssize_t numBytes = send(sock, echoString, echoStringLen, 0);
-  if (numBytes < 0)
-    DieWithSystemMessage("send() failed");
-  else if (numBytes != echoStringLen)
-    DieWithUserMessage("send()", "sent unexpected number of bytes");
-
-  // Receive the same string back from the server
-  unsigned int totalBytesRcvd = 0; // Count of total bytes received
-  
-
-  struct sockaddr_storage fromAddr; // Source address of server
+	// Receive the same string back from the server
+  	struct sockaddr_storage fromAddr; // Source address of server	
 	socklen_t fromAddrLen = sizeof(fromAddr);
 	char received[MAXSTRINGLENGTH + 1];
 	while (!recv_success) {
 		numBytes = recv(sock, received, BUFSIZE - 1, 0);
-	        attempts++;
-
-		if (numBytes == echoStringLen) {
+		attempts++;
+		if (numBytes == messageLen) {
 			end = clock();
 			recv_success = true;
 		}
-		else if (numBytes != echoStringLen) {
-			printf("recvfrom() error: received unexpected number of bytes; ");
+		else if (numBytes != messageLen) {
+			printf("recv() error: received unexpected number of bytes; \n");
 			printf("attempting to receive again...\n");
 		}
 		else
-			printf("recvfrom() failed; attempting to receive again...\n");
+			printf("recv() failed; attempting to receive again...\n");
   }
   
+	// Null-terminate received message, end clock, and print communication stats
+	received[messageLen] = '\0';
+	end = clock();
+	double time_spent = ((double)(end-begin)) / CLOCKS_PER_SEC;
+	printf("%d     %.6f     %s     %s", attempts, time_spent, message, received);
+	printf("\n");
 
-  received[echoStringLen] = '\0';
-  end = clock();
-  double time_spent = ((double)(end - begin)) / CLOCKS_PER_SEC;
-  printf(" %d     %.6f     %s     %s", attempts, time_spent, echoString, received);
-  fputc('\n', stdout); // Print a final linefeed
+	// Close socket and free addrinfo allocated in getaddrinfo()
+	close(sock);
+	freeaddrinfo(servAddr);
 
-  close(sock);
-  exit(0);
+	return 0;
 }
 

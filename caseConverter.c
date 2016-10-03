@@ -11,21 +11,23 @@ static const int MAXPENDING = 5; // Maximum outstanding connection requests
 
 int main(int argc, char *argv[]) {
 
-  //Array to hold unique IPs
+	// Array to hold IP of each unique client from which a message is received
 	char *ipAddrs[MAXSTRINGLENGTH];
 	int ipCounter = 0;
 
-  if (argc != 3) // Test for correct number of arguments
-    DieWithUserMessage("Parameter(s)", "<Server Port>");
+	// Ensure that user ran with correct syntax and # of arguments. If not, exit
+	if (argc != 3) {
+		printf("Syntax: ./caseConverter -p <port>\n");
+		exit(1);
+	}
 
-  // Parse command line and initialize variables
-	char *portnum;
+	// Parse command line and initialize variables
+	in_port_t servPort;
 	int c;
-	//opterr = 0;
 	while ((c = getopt(argc, argv, "p:")) != -1) {
 		switch (c) {
 			case 'p':
-				portnum = optarg;
+				servPort = atoi(optarg);
 				break;
 			case '?':
 				if (optopt == 'c')
@@ -40,32 +42,33 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-  in_port_t servPort = atoi(portnum);
+	// Create socket for incoming connections
+	int servSock; // Socket descriptor for server
+	if ((servSock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+		perror("socket() failed");
+		exit(1);
+	}
   
-  // Create socket for incoming connections
-  int servSock; // Socket descriptor for server
-  if ((servSock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
-    DieWithSystemMessage("socket() failed");
+	// Construct local address structure
+	struct sockaddr_in servAddr;                  // Local address
+	memset(&servAddr, 0, sizeof(servAddr));       // Zero out structure
+	servAddr.sin_family = AF_INET;                // IPv4 address family
+	servAddr.sin_addr.s_addr = htonl(INADDR_ANY); // Any incoming interface
+	servAddr.sin_port = htons(servPort);          // Local port
 
-  // Construct local address structure
-  struct sockaddr_in servAddr;                  // Local address
-  memset(&servAddr, 0, sizeof(servAddr));       // Zero out structure
-  servAddr.sin_family = AF_INET;                // IPv4 address family
-  servAddr.sin_addr.s_addr = htonl(INADDR_ANY); // Any incoming interface
-  servAddr.sin_port = htons(servPort);          // Local port
+	// Bind to the local address
+	if (bind(servSock, (struct sockaddr*) &servAddr, sizeof(servAddr)) < 0) {
+		perror("bind() failed");
+		exit(1);
+	}
 
-  // Bind to the local address
-  if (bind(servSock, (struct sockaddr*) &servAddr, sizeof(servAddr)) < 0)
-    DieWithSystemMessage("bind() failed");
-
-  // Mark the socket so it will listen for incoming connections
-  if (listen(servSock, MAXPENDING) < 0)
-    DieWithSystemMessage("listen() failed");
-  
-  // Code necessary for printing output when ended with CTRL+C
-	int msgs_recvd = 0;
+	// Mark the socket so it will listen for incoming connections
+	if (listen(servSock, MAXPENDING) < 0) {
+		perror("listen() failed");
+	}
   
   //Print number of messages and the unique client ips after CTRL+C
+	int msgs_recvd = 0;
 	void ctrlHandle(int sig) {
 		char c;
 		signal(sig, SIG_IGN);
@@ -127,6 +130,8 @@ int main(int argc, char *argv[]) {
     
     char buffer[BUFSIZE]; // Buffer for echo string
     char inverted[BUFSIZE];
+	bzero(buffer, sizeof(buffer));
+	bzero(inverted, sizeof(inverted));
   
 
   // Receive message from client

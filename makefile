@@ -16,8 +16,8 @@ DEPS = practical.h
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-bellower: bellower.o DieWithMessage.o TCPClientUtility.o 
-	gcc -o bellower -std=gnu99 bellower.o DieWithMessage.o TCPClientUtility.o -I.
+bellower: bellower.o DieWithMessage.o TCPClientUtility.o AddressUtility.o 
+	gcc -o bellower -std=gnu99 bellower.o DieWithMessage.o TCPClientUtility.o AddressUtility.o -I.
 
 CC=gcc
 CFLAGS=-I. -std=gnu99
@@ -26,8 +26,9 @@ DEPS = practical.h
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-frank: frank.o DieWithMessage.o TCPClientUtility.o
-	gcc -o frank -std=gnu99 frank.o DieWithMessage.o TCPClientUtility.o -I.
+frank: frank.o DieWithMessage.o TCPClientUtility.o AddressUtility.o
+	gcc -o frank -std=gnu99 frank.o DieWithMessage.o TCPClientUtility.o AddressUtility.o -I.
+
 clean:
 	rm *o
 
