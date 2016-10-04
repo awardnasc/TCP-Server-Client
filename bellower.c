@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include "Practical.h"
+#include "caseConverter.h"
 
 int main(int argc, char *argv[]) {
 
@@ -110,21 +102,21 @@ int main(int argc, char *argv[]) {
 			printf("recv() error: received unexpected number of bytes; \n");
 			printf("attempting to receive again...\n");
 		}
+		else if (!SockAddrsEqual(servAddr->ai_addr, (struct sockaddr*)&fromAddr))
+			printf("recv() error: received a packet from unknown source\n");
 		else
 			printf("recv() failed; attempting to receive again...\n");
-  }
+	}
   
 	// Null-terminate received message, end clock, and print communication stats
 	received[messageLen] = '\0';
 	end = clock();
 	double time_spent = ((double)(end-begin)) / CLOCKS_PER_SEC;
-	printf("%d     %.6f     %s     %s", attempts, time_spent, message, received);
-	printf("\n");
+	printf(" %d %.6f %s %s\n", attempts, time_spent, message, received);
 
 	// Close socket and free addrinfo allocated in getaddrinfo()
 	close(sock);
 	freeaddrinfo(servAddr);
-
 	return 0;
 }
 

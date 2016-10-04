@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include "Practical.h"
+#include "caseConverter.h"
 
 int main(int argc, char *argv[]) {
 
@@ -87,8 +79,6 @@ int main(int argc, char *argv[]) {
 	size_t messageLen = strlen(message);
 	ssize_t numBytes = send(sock, message, messageLen, 0);
 
-	printf("initial message sent: %s\n", message);
-
 	if (numBytes < 0) {
 		perror("send() failed");
 		exit(1);
@@ -118,13 +108,9 @@ int main(int argc, char *argv[]) {
 			printf("recv() failed; attempting to receive again...\n");
   }
 
-	printf("inverted message received: %s\n", inverted);
-
 	// Send inverted string back to caseConverter
 	size_t invertedLen = strlen(inverted);
 	send_success = false;
-
-	printf("inverted message sent back: %s\n", inverted);	
 
 	while (!send_success) {
 		close(sock);
@@ -138,8 +124,8 @@ int main(int argc, char *argv[]) {
 		}
 		
 		// Create a reliable stream socket using TCP
-		int sock = socket(servAddr->ai_family, servAddr->ai_socktype,
-								servAddr->ai_protocol);
+		sock = socket(servAddr->ai_family, servAddr->ai_socktype,
+							servAddr->ai_protocol);
 		if (sock < 0) {
 			perror("socket() failed");
 			exit(1);
@@ -185,19 +171,20 @@ int main(int argc, char *argv[]) {
 			printf("recvfrom() failed; attempting to receive again...\n");
 	}
 
-	printf("final message received: %s\n", final);
-
-	// Verify that initial msg and final doubly-inverted msg are identical
+	// Null-terminate inverted and final message
 	inverted[messageLen] = '\0';
 	final[messageLen] = '\0';
 
+	// Verify that initial msg and final doubly-inverted msg are identical
 	_Bool verified = !strcmp(message, final);
-	printf("\n\n\ninitial message: %s, final: %s\n", message, final);
 
+	// End clock and print communication stats
 	end = clock();
 	double time_spent = ((double)(end - begin)) / CLOCKS_PER_SEC;
 	printf(" %d	%.6f	%s	%s	%s\n", attempts, time_spent, message, inverted,
 			 verified ? "Verified" : "Not Verified");
+	
+	// Close socket and free addrinfo allocated in getaddrinfo()
 	close(sock);
 	freeaddrinfo(servAddr);
 	return 0;
