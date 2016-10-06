@@ -1,3 +1,6 @@
+// bellower.c -- sends a string provided as a parameter at the command line 
+// to a networked server. it waits for a response from the server and displays 
+// the entire message received.
 #include "caseConverter.h"
 
 int main(int argc, char *argv[]) {

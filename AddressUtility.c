@@ -1,5 +1,4 @@
-// A print and equality checker for sockets sent in
-
+// A printer and equality checker for sockets sent in
 #include "caseInverter.h"
 
 // print the address of a socket to a file stream

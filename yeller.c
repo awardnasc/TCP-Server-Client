@@ -1,5 +1,6 @@
-//UDP client to send message to UDP server (caseInverter.c)
-
+// yeller.c -- sends a string provided as a parameter at the command line 
+// to a networked server. it waits for a response from the server and displays 
+// the entire message received.
 #include "caseInverter.h"
 
 int main(int argc, char *argv[]) {

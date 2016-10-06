@@ -1,3 +1,10 @@
+// caseConverter.c -- this server receives a string from a client and inverts
+// all lowercase characters to uppercase, and uppercase characters to lowercase
+// for the characters where this can be done. all other characters are to
+// remain unchanged. caseConverter then sends the inverted message back to the
+// client. caseConverter runs forever until CTRL+C'd. when this happens,
+// the number of messages received and a list of IP addresses of unique
+// clients that sent messages to caseConverter is printed.
 #include "caseConverter.h"
 
 int main(int argc, char *argv[]) {

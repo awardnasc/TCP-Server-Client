@@ -1,5 +1,10 @@
-//UDP server to switch the case on messages sent by clients
-
+// caseInverter.c -- this server receives a string from a client and inverts
+// all lowercase characters to uppercase, and uppercase characters to lowercase
+// for the characters where this can be done. all other characters are to
+// remain unchanged. caseInverter then sends the inverted message back to the
+// client. caseInverter runs forever until CTRL+C'd. when this happens,
+// the number of messages received and a list of IP addresses of unique
+// clients that sent messages to caseInverter is printed.
 #include "caseInverter.h"
 
 int main(int argc, char *argv[]) {
@@ -135,7 +140,7 @@ int main(int argc, char *argv[]) {
 	
 		// Invert received message and store in inverted string
 		int x;
-		for (x=0; x<clntAddrLen; x++) {
+		for (x=0; x<numBytesRcvd; x++) {
 			if ((int)buffer[x] >= 65 && (int)buffer[x] <= 90)
 				inverted[x] = buffer[x]+32;
 			else if ((int)buffer[x] >= 97 && (int)buffer[x] <= 122)

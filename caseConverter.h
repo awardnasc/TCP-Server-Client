@@ -18,6 +18,9 @@
 // Test socket address equality
 bool SockAddrsEqual(const struct sockaddr *addr1, const struct sockaddr *addr2);
 
+// Print socket address
+void PrintSocketAddress(const struct sockaddr *address, FILE *stream);
+
 enum sizeConstants {
   MAXSTRINGLENGTH = 128,
   BUFSIZE = 512,

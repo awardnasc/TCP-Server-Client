@@ -1,3 +1,10 @@
+// frank.c -- verifies whether the server, caseConverter, performs its desired
+// task of inverting the case of the letters of a message it receives from a 
+// network client. frank does this by sending a message to caseConverter,
+// receiving the modified message, and then sending the modified message back
+// and comparing the ultimate response with the original message. if it is the
+// same as the original message, the server is "verified" and this program
+// terminates displaying an appropriate message to the user.
 #include "caseConverter.h"
 
 int main(int argc, char *argv[]) {

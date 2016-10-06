@@ -7,25 +7,24 @@ DEPS = caseConverter.h, caseInverter.h
 %.o: %.c $(DEPS)
 	$(CC) -c -o  $@ $< $(CFLAGS)
 
-caseConverter: caseConverter.o SockAddrsEqual.o
-	gcc -o caseConverter -std=gnu99 caseConverter.o SockAddrsEqual.o -I.
+caseConverter: caseConverter.c AddressUtility.c
+	gcc -o caseConverter -std=gnu99 caseConverter.c AddressUtility.c -I.
 
-bellower: bellower.o SockAddrsEqual.o 
-	gcc -o bellower -std=gnu99 bellower.o SockAddrsEqual.o -I.
+bellower: bellower.c AddressUtility.c
+	gcc -o bellower -std=gnu99 bellower.c AddressUtility.c -I.
 
-frank: frank.o SockAddrsEqual.o
-	gcc -o frank -std=gnu99 frank.o SockAddrsEqual.o -I.
+frank: frank.c AddressUtility.c
+	gcc -o frank -std=gnu99 frank.c AddressUtility.c -I.
 
-caseInverter: caseInverter.o AddressUtility.o 
-	gcc -o caseInverter -std=gnu99 caseInverter.o AddressUtility.o -I.
+caseInverter: caseInverter.c AddressUtility.c 
+	gcc -o caseInverter -std=gnu99 caseInverter.c AddressUtility.c -I.
 
-yeller: yeller.o AddressUtility.o
-	gcc -o yeller -std=gnu99 yeller.o AddressUtility.o -I.
+yeller: yeller.c AddressUtility.c
+	gcc -o yeller -std=gnu99 yeller.c AddressUtility.c -I.
 
-checker: checker.o AddressUtility.o
-	gcc -o checker -std=gnu99 checker.o AddressUtility.o -I.
+checker: checker.c AddressUtility.c
+	gcc -o checker -std=gnu99 checker.c AddressUtility.c -I.
 
 clean:
-	rm *o
-
+	rm -f checker yeller caseInverter frank bellower caseConverter
 

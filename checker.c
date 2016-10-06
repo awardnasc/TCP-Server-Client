@@ -1,9 +1,10 @@
-/*
-UDP client to send message to server then resend the received
-message to see if the final message is the same as the first
-to check the functionality of caseInverter.c
-*/
-
+// checker.c -- verifies whether the server, caseConverter, performs its desired
+// task of inverting the case of the letters of a message it receives from a 
+// network client. checker does this by sending a message to caseConverter,
+// receiving the modified message, and then sending the modified message back
+// and comparing the ultimate response with the original message. if it is the
+// same as the original message, the server is "verified" and this program
+// terminates displaying an appropriate message to the user.
 #include "caseInverter.h"
 
 int main(int argc, char *argv[]) {
